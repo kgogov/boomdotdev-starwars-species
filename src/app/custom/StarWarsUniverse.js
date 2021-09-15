@@ -8,6 +8,8 @@ export default class StarWarsUniverse extends EventEmitter {
 
         this.species = [];
         this._maxSpecies = config.MAX_SPECIES;
+
+        this.init();
     }
 
     static get events() {
@@ -22,33 +24,9 @@ export default class StarWarsUniverse extends EventEmitter {
         return this.species.length;
     }
 
-    async createSpecies() {
-        let isMaxSpeciesReached = false;
-        let speciesCount = 1;
-
-        while (isMaxSpeciesReached === false) {
-            const species = new Species();
-
-            species.on(StarWarsUniverse.events.SPECIES_CREATED, () =>
-                this._onSpeciesCreated(species)
-            );
-
-            this.on(StarWarsUniverse.events.SPECIES_CREATED, (species) =>
-                this._checkForMaxSpecies(species)
-            );
-
-            this.once(
-                StarWarsUniverse.events.MAX_SPECIES_REACHED,
-                () => (isMaxSpeciesReached = true)
-            );
-
-            await species.init(config.BASE_URL + speciesCount);
-            speciesCount++;
-        }
-    }
-
     _onSpeciesCreated(species) {
         this.species.push(species);
+        
         this.emit(StarWarsUniverse.events.SPECIES_CREATED, {
             speciesCount: this.speciesCount,
         });
@@ -58,5 +36,27 @@ export default class StarWarsUniverse extends EventEmitter {
         if (species.speciesCount === this._maxSpecies) {
             this.emit(StarWarsUniverse.events.MAX_SPECIES_REACHED);
         }
+    }
+
+    async createSpecies() {
+        let isMaxSpeciesReached = false;
+        let speciesCount = 1;
+
+        while (!isMaxSpeciesReached) {
+            const species = new Species();
+
+            species.on(StarWarsUniverse.events.SPECIES_CREATED, () => this._onSpeciesCreated(species));
+
+            this.on(StarWarsUniverse.events.SPECIES_CREATED, (species) => this._checkForMaxSpecies(species));
+
+            this.once(StarWarsUniverse.events.MAX_SPECIES_REACHED, () => isMaxSpeciesReached = true);
+
+            await species.init(config.BASE_URL + speciesCount);
+            speciesCount++;
+        }
+    }
+
+    async init() {
+        this.createSpecies();
     }
 }
