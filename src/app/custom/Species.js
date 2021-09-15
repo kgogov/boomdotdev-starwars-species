@@ -1,11 +1,10 @@
 import { EventEmitter } from "eventemitter3";
-
 export default class Species extends EventEmitter {
-    constructor(name, classification) {
+    constructor() {
         super();
 
-        this.name = name || null;
-        this.classification = classification || null;
+        this.name = null;
+        this.classification = null;
     }
 
     static get events() {
@@ -13,7 +12,6 @@ export default class Species extends EventEmitter {
     }
 
     async fetchAndDecode(url) {
-
         try {
             const response = await fetch(url);
 
@@ -22,7 +20,6 @@ export default class Species extends EventEmitter {
             }
 
             return await response.json();
-
         } catch (error) {
             console.log(error);
         }
@@ -34,6 +31,6 @@ export default class Species extends EventEmitter {
         this.name = species.name;
         this.classification = species.classification;
 
-        this.emit(Species.events.SPECIES_CREATED, this);
+        this.emit(Species.events.SPECIES_CREATED);
     }
 }
